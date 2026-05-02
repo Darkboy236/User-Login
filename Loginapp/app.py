@@ -1,18 +1,55 @@
 from flask import Flask, render_template, request 
+import sqlite3
 
 app = Flask(__name__)
+
+
+def get_db():
+    return sqlite3.connect("users.db")
+
+
+def create_table():
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+         CREATE TABLE IF NOT EXISTS Users(
+                   id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   NAME TEXT,
+                   Password TEXT
+                   );
+""")
+    
+    db.commit()
+    db.close()
+
+create_table()
 
 @app.route("/")
 def login():
     return render_template("login.html")
 
-@app.route("/register")
+@app.route("//register.html", methods=["GET","POST"])
 def register():
-    return render_template("register.html")
+    msg =""
+    if request.method == "post":
+        username = request.form["username"]
+        password =request.form["password"]
 
-@app.route("/welcome")
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("SELECT * FROM Users Were Name=?", username)
+        account = cursor.fetchone()
+        if account:
+            msg = "Account already exists"
+        else:
+            cursor.execute("INSERT INTO Users (username, password) VALUES (?, ?)" ,username, password) 
+    return render_template("//register.html", msg=msg)
+
+@app.route("//Welcome.html")
 def welcome():
-    return render_template("welcome.html")
+    return render_template("//welcome.html")
 
 
 
